@@ -20,21 +20,21 @@ func Find() (net.Addr, []byte, []byte) {
 		panic(err)
 	}
 
-	trimedBuffer := buf[:n]
+	trimmedBuf := buf[:n]
 
 	var portBuf []byte
 	var fileSizeBuf []byte
 	// mode 0= port /  0 != fileSize
 	var mode = 0
-	for i := 0; i < len(trimedBuffer); i++ {
-		if trimedBuffer[i] == byte('\n') {
+	for i := 0; i < len(trimmedBuf); i++ {
+		if trimmedBuf[i] == byte('\n') {
 			mode = 1
 			continue
 		}
 		if mode == 0 {
-			portBuf = append(portBuf, trimedBuffer[i])
+			portBuf = append(portBuf, trimmedBuf[i])
 		} else {
-			fileSizeBuf = append(fileSizeBuf, trimedBuffer[i])
+			fileSizeBuf = append(fileSizeBuf, trimmedBuf[i])
 		}
 	}
 
