@@ -24,19 +24,8 @@ func Find() (net.Addr, []byte, []byte) {
 
 	var portBuf []byte
 	var fileSizeBuf []byte
-	// mode 0= port /  0 != fileSize
-	var mode = 0
-	for i := 0; i < len(trimmedBuf); i++ {
-		if trimmedBuf[i] == byte('\n') {
-			mode = 1
-			continue
-		}
-		if mode == 0 {
-			portBuf = append(portBuf, trimmedBuf[i])
-		} else {
-			fileSizeBuf = append(fileSizeBuf, trimmedBuf[i])
-		}
-	}
+
+	DiscoveryDataExtractor(trimmedBuf, &portBuf, &fileSizeBuf)
 
 	return addr, portBuf, fileSizeBuf
 }
@@ -70,5 +59,21 @@ func Show(port string, fileSize int64) {
 		}
 		list.Close()
 		time.Sleep(time.Second * 5)
+	}
+}
+
+func DiscoveryDataExtractor(trimmedBuf []byte, portBuf *[]byte, fileSizeBuf *[]byte) {
+	var portBufSize = 1
+	for i := 0; i < len(trimmedBuf); i++ {
+		if trimmedBuf[i] == byte('\n') {
+			sBuf := trimmedBuf[portBufSize:]
+			for ii := 0; ii < len(sBuf); ii++ {
+				*fileSizeBuf = append(*fileSizeBuf, sBuf[ii])
+			}
+			break
+		} else {
+			*portBuf = append(*portBuf, trimmedBuf[i])
+			portBufSize++
+		}
 	}
 }
