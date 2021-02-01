@@ -43,9 +43,13 @@ func main() {
 			log.Fatalf("cant send file %v", err)
 		}
 	} else {
-		err := core.Receive(file, strconv.Itoa(n), func(d io.Reader, f io.Writer) {
+		err := core.Receive(file, strconv.Itoa(n), func(d io.Reader, f io.Writer, sizeD []byte) {
+			size, err := strconv.Atoi(string(sizeD))
+			if err != nil {
+				log.Fatalln("cant get file size")
+			}
 			bar := progressbar.DefaultBytes(
-				-1,
+				int64(size),
 				"downloading",
 			)
 

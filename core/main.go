@@ -31,7 +31,7 @@ func Send(callback SendDataCallback, fileLocation string, randomNumber string) e
 // (if ip or port is nil it will discover senders in the local network)
 func Receive(writeLocation string, number string, broker dataReceiveBroker, ip string, port string) error {
 	// receive data
-	d, err := ReceiveData(number, ip, port)
+	d, err, fileSize := ReceiveData(number, ip, port)
 	if err != nil {
 		return err
 	}
@@ -42,30 +42,32 @@ func Receive(writeLocation string, number string, broker dataReceiveBroker, ip s
 		return err
 	}
 
-	broker(d, f)
+	broker(d, f, fileSize)
 	return nil
 }
 
 // A low level receive function used by the higher level Receive
 // (if ip or port is nil it will discover senders in the local network)
-func ReceiveData(number string, ip string, port string) (io.Reader, error) {
+func ReceiveData(number string, ip string, port string) (io.Reader, error, []byte) {
+	var fileSize []byte
 	if ip == "" || port == "" {
-		ipD, portD := discover.Find()
+		ipD, portD, fileSizeD := discover.Find()
 		port = string(portD)
 		ip = ipD.String()
+		fileSize = fileSizeD
 	}
 
 	c, err := net.Dial("tcp", utils.GetBaseIp(ip)+":"+port)
 	if err != nil {
-		return nil, err
+		return nil, err, nil
 	}
 
 	_, err = c.Write([]byte(number))
 	if err != nil {
-		return nil, err
+		return nil, err, nil
 	}
 
-	return c, nil
+	return c, nil, fileSize
 }
 
 // A low level send function used by the higher level Send
@@ -74,6 +76,22 @@ func SendData(callbacks SendDataCallback, reader io.Reader, randomNumber string,
 	if err != nil {
 		return err
 	}
+	StartTcpSever(l, randomNumber, callbacks, reader, dataSize)
+
+	// sends other listeners the port
+	discover.Show("6780", dataSize)
+	return nil
+}
+
+// after this function is called net.Conn.Close is called
+type dataReceiveBroker func(io.Reader, io.Writer, []byte)
+
+type SendDataCallback struct {
+	DataBroker   func(net.Conn, io.Reader, int64)
+	SentCallback func(net.Conn)
+}
+
+func StartTcpSever(l net.Listener, randomNumber string, callbacks SendDataCallback, reader io.Reader, dataSize int64) {
 	go func() {
 		for {
 			c, _ := l.Accept()
@@ -94,16 +112,4 @@ func SendData(callbacks SendDataCallback, reader io.Reader, randomNumber string,
 			callbacks.SentCallback(c)
 		}
 	}()
-
-	// sends other listeners the port
-	discover.Show("6780")
-	return nil
-}
-
-// after this function is called net.Conn.Close is called
-type dataReceiveBroker func(io.Reader, io.Writer)
-
-type SendDataCallback struct {
-	DataBroker   func(net.Conn, io.Reader, int64)
-	SentCallback func(net.Conn)
 }

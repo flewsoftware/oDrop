@@ -3,10 +3,11 @@ package discover
 import (
 	"net"
 	"oDrop/utils"
+	"strconv"
 	"time"
 )
 
-func Find() (net.Addr, []byte) {
+func Find() (net.Addr, []byte, []byte) {
 	pc, err := net.ListenPacket("udp4", ":8829")
 	if err != nil {
 		panic(err)
@@ -18,10 +19,29 @@ func Find() (net.Addr, []byte) {
 	if err != nil {
 		panic(err)
 	}
-	return addr, buf[:n]
+
+	trimedBuffer := buf[:n]
+
+	var portBuf []byte
+	var fileSizeBuf []byte
+	// mode 0= port /  0 != fileSize
+	var mode = 0
+	for i := 0; i < len(trimedBuffer); i++ {
+		if trimedBuffer[i] == byte('\n') {
+			mode = 1
+			continue
+		}
+		if mode == 0 {
+			portBuf = append(portBuf, trimedBuffer[i])
+		} else {
+			fileSizeBuf = append(fileSizeBuf, trimedBuffer[i])
+		}
+	}
+
+	return addr, portBuf, fileSizeBuf
 }
 
-func Show(port string) {
+func Show(port string, fileSize int64) {
 	local, err := net.ResolveUDPAddr("udp4", ":8829")
 	if err != nil {
 		panic(err)
@@ -43,7 +63,8 @@ func Show(port string) {
 			panic(err)
 		}
 
-		_, err = list.Write([]byte(port))
+		sFileSize := strconv.FormatInt(fileSize, 10)
+		_, err = list.Write([]byte(port + "\n" + sFileSize))
 		if err != nil {
 			panic(err)
 		}
