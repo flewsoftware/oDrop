@@ -30,8 +30,8 @@ func ModeToSimple(mode string) string {
 	}
 }
 
-func GetBaseIp(ip string) string {
-	return strings.Split(ip, ":")[0]
+func GetBaseIp(addr string) string {
+	return strings.Split(addr, ":")[0]
 }
 
 func LastAddr(n net.IPNet) (net.IP, error) {
