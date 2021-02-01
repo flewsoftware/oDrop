@@ -20,6 +20,8 @@ func main() {
 	mode, file, n = PromptUser()
 
 	if utils.ModeToSimple(mode) == "s" {
+
+		// generates a random number to verify receiver
 		r := utils.GetRandomNumber()
 		fmt.Printf("Passcode is %s\n", r)
 
