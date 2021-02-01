@@ -15,8 +15,14 @@ func Send(callback SendDataCallback, fileLocation string, randomNumber string) e
 	if err != nil {
 		return err
 	}
+
 	s, err := f.Stat()
+	if err != nil {
+		return err
+	}
+
 	dataSize := s.Size()
+
 	err = SendData(callback, f, randomNumber, dataSize)
 	return err
 }
