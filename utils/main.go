@@ -34,7 +34,7 @@ func GetBaseIp(ip string) string {
 	return strings.Split(ip, ":")[0]
 }
 
-func LastAddr(n net.IPNet) (net.IP, error) { // works when the n is a prefix, otherwise...
+func LastAddr(n net.IPNet) (net.IP, error) {
 	if n.IP.To4() == nil {
 		return net.IP{}, errors.New("does not support IPv6 addresses.")
 	}
