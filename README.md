@@ -6,7 +6,6 @@ oDrops commands are simple and easy to remember, this has been one of our top pr
 
 ## Features
 * sender IP discovery using udp4 (no need to enter local ip of the sender)
-* high speed compressed data streaming
-
+* fast file transfer speed using tcp
 
 **NOTICE: oDrop is currently in beta use at your own risk**
