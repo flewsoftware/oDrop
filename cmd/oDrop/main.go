@@ -1,7 +1,6 @@
 package main
 
 import (
-	"compress/gzip"
 	"fmt"
 	"github.com/schollz/progressbar/v3"
 	"io"
@@ -11,6 +10,7 @@ import (
 	"oDrop/utils"
 	"os"
 	"strconv"
+	"time"
 )
 
 func main() {
@@ -33,14 +33,10 @@ func main() {
 				os.Exit(0)
 			},
 			DataBroker: func(c net.Conn, reader io.Reader, size int64) {
-				gzr, err := gzip.NewReader(reader)
-				if err != nil {
-					log.Fatal(err)
-				}
 
 				bar := progressbar.DefaultBytes(size, "Sending")
 				bar.Describe("Sending")
-				io.Copy(io.MultiWriter(c, bar), gzr)
+				io.Copy(io.MultiWriter(c, bar), reader)
 			},
 		}, file, r)
 		if err != nil {
@@ -52,18 +48,24 @@ func main() {
 				-1,
 				"downloading",
 			)
+
+			var downloadStartTime = time.Now()
+
 			// copy contents of data to the file
 			wb, err := io.Copy(io.MultiWriter(f, bar), d)
 
 			if err != nil {
 				log.Fatalln(err)
 			}
+
+			var endTime = time.Since(downloadStartTime)
+
 			if wb == 0 {
 				fmt.Printf("got %d bytes passcode might be wrong", wb)
 			} else {
-				fmt.Printf("%d B written in %s", wb, file)
+				fmt.Printf("%d B written in %s (took %v to download)", wb, file, endTime)
 			}
-		})
+		}, "", "")
 		if err != nil {
 			log.Fatalf("cant receive file %v", err)
 		}

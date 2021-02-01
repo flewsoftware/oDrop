@@ -28,9 +28,10 @@ func Send(callback SendDataCallback, fileLocation string, randomNumber string) e
 }
 
 // receive and write data to a file (use ReceiveData function for more control)
-func Receive(writeLocation string, number string, broker dataReceiveBroker) error {
+// (if ip or port is nil it will discover senders in the local network)
+func Receive(writeLocation string, number string, broker dataReceiveBroker, ip string, port string) error {
 	// receive data
-	d, err := ReceiveData(number)
+	d, err := ReceiveData(number, ip, port)
 	if err != nil {
 		return err
 	}
@@ -46,10 +47,15 @@ func Receive(writeLocation string, number string, broker dataReceiveBroker) erro
 }
 
 // A low level receive function used by the higher level Receive
-func ReceiveData(number string) (io.Reader, error) {
-	add, port := discover.Find()
+// (if ip or port is nil it will discover senders in the local network)
+func ReceiveData(number string, ip string, port string) (io.Reader, error) {
+	if ip == "" || port == "" {
+		ipD, portD := discover.Find()
+		port = string(portD)
+		ip = ipD.String()
+	}
 
-	c, err := net.Dial("tcp", utils.GetBaseIp(add.String())+":"+string(port))
+	c, err := net.Dial("tcp", utils.GetBaseIp(ip)+":"+port)
 	if err != nil {
 		return nil, err
 	}
