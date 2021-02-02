@@ -4,6 +4,24 @@ import (
 	"testing"
 )
 
+func TestModeToSimple(t *testing.T) {
+	var tests = []struct {
+		mode   string
+		simple string
+	}{
+		{"s", "s"},
+		{"r", "r"},
+		{"send", "s"},
+		{"receive", "r"},
+	}
+
+	for _, value := range tests {
+		if a := ModeToSimple(value.mode); a != value.simple {
+			t.Errorf("simple not eqal to ModeToSimple result: %s != %s", a, value.simple)
+		}
+	}
+}
+
 func TestGetBaseIp(t *testing.T) {
 	var tests = []struct {
 		addrWithPort string
