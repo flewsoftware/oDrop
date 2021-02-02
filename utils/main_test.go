@@ -22,6 +22,13 @@ func TestModeToSimple(t *testing.T) {
 	}
 }
 
+func BenchmarkModeToSimple(b *testing.B) {
+	var a = "send"
+	for i := 0; i < b.N; i++ {
+		_ = ModeToSimple(a)
+	}
+}
+
 func TestGetBaseIp(t *testing.T) {
 	var tests = []struct {
 		addrWithPort string
