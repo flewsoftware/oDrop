@@ -19,8 +19,8 @@ func main() {
 	var file string
 	var n int
 
-	var useLessCpuTimeExtractor = flag.Bool("lessCpuTime", true, "uses less cpu time whenever possible")
-	var testingMode = flag.Bool("testingMode", true, "enables testing mode")
+	var useLessCpuTimeExtractor = flag.Bool("lessCpuTime", false, "uses less cpu time whenever possible")
+	var testingMode = flag.Bool("testingMode", false, "enables testing mode")
 	mode, file, n = PromptUser()
 	flag.Parse()
 
