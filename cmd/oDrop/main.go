@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/schollz/progressbar/v3"
 	"io"
@@ -17,7 +18,11 @@ func main() {
 	var mode string
 	var file string
 	var n int
+
+	var useLessCpuTimeExtractor = flag.Bool("lessCpuTime", true, "uses less cpu time whenever possible")
+	var testingMode = flag.Bool("testingMode", true, "enables testing mode")
 	mode, file, n = PromptUser()
+	flag.Parse()
 
 	if utils.ModeToSimple(mode) == "s" {
 
@@ -42,12 +47,20 @@ func main() {
 		if err != nil {
 			log.Fatalf("cant send file %v", err)
 		}
+
 	} else {
+		var ip, port = "", ""
+		if *testingMode {
+			fmt.Println("testing mode")
+			ip = "localhost"
+			port = "6780"
+		}
 		err := core.Receive(file, strconv.Itoa(n), func(d io.Reader, f io.Writer, sizeD []byte) {
 			size, err := strconv.Atoi(string(sizeD))
 			if err != nil {
-				log.Fatalln("cant get file size")
+				log.Fatalf("cant get file size: %v\n", err)
 			}
+
 			bar := progressbar.DefaultBytes(
 				int64(size),
 				"downloading",
@@ -57,7 +70,6 @@ func main() {
 
 			// copy contents of data to the file
 			wb, err := io.Copy(io.MultiWriter(f, bar), d)
-
 			if err != nil {
 				log.Fatalln(err)
 			}
@@ -69,7 +81,7 @@ func main() {
 			} else {
 				fmt.Printf("%d B written in %s (took %v to download)", wb, file, endTime)
 			}
-		}, "", "")
+		}, ip, port, *useLessCpuTimeExtractor)
 		if err != nil {
 			log.Fatalf("cant receive file %v", err)
 		}

@@ -4,10 +4,11 @@ import (
 	"net"
 	"oDrop/utils"
 	"strconv"
+	"strings"
 	"time"
 )
 
-func Find() (net.Addr, []byte, []byte) {
+func Find(useLowCpuTimeExtractor bool) (net.Addr, []byte, []byte) {
 	pc, err := net.ListenPacket("udp4", ":8829")
 	if err != nil {
 		panic(err)
@@ -25,7 +26,11 @@ func Find() (net.Addr, []byte, []byte) {
 	var portBuf []byte
 	var fileSizeBuf []byte
 
-	DiscoveryDataExtractor(trimmedBuf, &portBuf, &fileSizeBuf)
+	if useLowCpuTimeExtractor {
+		DiscoveryDataExtractorLowCpuTime(trimmedBuf, &portBuf, &fileSizeBuf)
+	} else {
+		DiscoveryDataExtractor(trimmedBuf, &portBuf, &fileSizeBuf)
+	}
 
 	return addr, portBuf, fileSizeBuf
 }
@@ -62,6 +67,8 @@ func Show(port string, fileSize int64) {
 	}
 }
 
+// extracts port and file size from udp discovery data
+// this function uses less memory
 func DiscoveryDataExtractor(trimmedBuf []byte, portBuf *[]byte, fileSizeBuf *[]byte) {
 	var portBufSize = 1
 	for i := 0; i < len(trimmedBuf); i++ {
@@ -76,4 +83,13 @@ func DiscoveryDataExtractor(trimmedBuf []byte, portBuf *[]byte, fileSizeBuf *[]b
 			portBufSize++
 		}
 	}
+}
+
+// extracts port and file size from udp discovery data
+// this function uses less cpu time
+func DiscoveryDataExtractorLowCpuTime(trimmedBuf []byte, portBuf *[]byte, fileSizeBuf *[]byte) {
+	v := strings.Split(string(trimmedBuf), "\n")
+
+	*portBuf = []byte(v[0])
+	*fileSizeBuf = []byte(v[1])
 }

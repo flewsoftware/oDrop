@@ -29,9 +29,9 @@ func Send(callback SendDataCallback, fileLocation string, randomNumber string) e
 
 // receive and write data to a file (use ReceiveData function for more control)
 // (if ip or port is nil it will discover senders in the local network)
-func Receive(writeLocation string, number string, broker dataReceiveBroker, ip string, port string) error {
+func Receive(writeLocation string, number string, broker dataReceiveBroker, ip string, port string, useLowCpuTimeExtractor bool) error {
 	// receive data
-	d, err, fileSize := ReceiveData(number, ip, port)
+	d, err, fileSize := ReceiveData(number, ip, port, useLowCpuTimeExtractor)
 	if err != nil {
 		return err
 	}
@@ -48,10 +48,10 @@ func Receive(writeLocation string, number string, broker dataReceiveBroker, ip s
 
 // A low level receive function used by the higher level Receive
 // (if ip or port is nil it will discover senders in the local network)
-func ReceiveData(number string, ip string, port string) (io.Reader, error, []byte) {
-	var fileSize []byte
+func ReceiveData(number string, ip string, port string, useLowCpuTimeExtractor bool) (io.Reader, error, []byte) {
+	var fileSize = []byte("0")
 	if ip == "" || port == "" {
-		ipD, portD, fileSizeD := discover.Find()
+		ipD, portD, fileSizeD := discover.Find(useLowCpuTimeExtractor)
 		port = string(portD)
 		ip = ipD.String()
 		fileSize = fileSizeD
