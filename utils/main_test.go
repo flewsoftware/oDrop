@@ -54,3 +54,10 @@ func BenchmarkGetBaseIp(b *testing.B) {
 	}
 
 }
+
+func BenchmarkRemoveWhitespace(b *testing.B) {
+	a := "s "
+	for i := 0; i < b.N; i++ {
+		_ = RemoveWhitespace(a)
+	}
+}
