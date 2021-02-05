@@ -9,6 +9,7 @@ import (
 	"net"
 	"oDrop/core"
 	"oDrop/utils"
+	"oDrop/utils/speedwrap"
 	"os"
 	"strconv"
 	"time"
@@ -38,10 +39,12 @@ func main() {
 				os.Exit(0)
 			},
 			DataBroker: func(c net.Conn, reader io.Reader, size int64) {
-
+				s := speedwrap.SW{}
 				bar := progressbar.DefaultBytes(size, "Sending")
 				bar.Describe("Sending")
-				io.Copy(io.MultiWriter(c, bar), reader)
+				s.SetStartTime()
+				io.Copy(io.MultiWriter(io.MultiWriter(c, bar), &s), reader)
+				fmt.Printf("finished sending file with a avg speed of %d B/s", s.GetSpeedRound())
 			},
 		}, file, r)
 		if err != nil {
@@ -75,6 +78,7 @@ func main() {
 			}
 
 			var endTime = time.Since(downloadStartTime)
+			bar.Finish()
 
 			if wb == 0 {
 				fmt.Printf("got %d bytes passcode might be wrong", wb)
